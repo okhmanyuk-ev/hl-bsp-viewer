@@ -1,0 +1,6 @@
+[submodule "hl"]
+	path = hl
+	url = git@github.com:okhmanyuk-ev/hl.git
+[submodule "sky"]
+	path = sky
+	url = git@github.com:okhmanyuk-ev/sky.git
