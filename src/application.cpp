@@ -89,7 +89,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 					}
 				}
 
-				mTextures[tex_id] = std::make_shared<Renderer::Texture>(miptex.width, miptex.height, 4, pixels.data(), true);
+				mTextures[tex_id] = std::make_shared<skygfx::Texture>(miptex.width, miptex.height, 4, pixels.data(), true);
 			}
 		}
 	}
@@ -106,7 +106,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 		Face f = {};
 
 		f.tex_id = texinfo._miptex;
-		f.start = mVertices.size();
+		f.start = (uint32_t)mVertices.size();
 
 		for (int i = face.firstedge; i < face.firstedge + face.numedges; i++)
 		{
@@ -137,8 +137,8 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 			float s = glm::dot(v.pos, ti0) + texinfo.vecs[0][3];
 			float t = glm::dot(v.pos, ti1) + texinfo.vecs[1][3];
 
-			v.tex.x = s * is;
-			v.tex.y = t * it;
+			v.texcoord.x = s * is;
+			v.texcoord.y = t * it;
 		
 			if (f.count >= 3) // triangulation 
 			{
@@ -327,15 +327,13 @@ void Application::onFrame()
 	mShader->setModelMatrix(model);
 	
 	RENDERER->setRenderTarget(mSceneTarget);
-	RENDERER->setViewport(Renderer::Viewport(mSceneTarget));
-	RENDERER->setScissor(nullptr);
-	RENDERER->setTopology(Renderer::Topology::TriangleList);
-	RENDERER->setDepthMode(Renderer::ComparisonFunc::Less);
-	RENDERER->setCullMode(Renderer::CullMode::Back);
-	RENDERER->setSampler(Renderer::Sampler::Linear);
+	RENDERER->setTopology(skygfx::Topology::TriangleList);
+	RENDERER->setDepthMode(skygfx::ComparisonFunc::Less);
+	RENDERER->setCullMode(skygfx::CullMode::Back);
+	RENDERER->setSampler(skygfx::Sampler::Linear);
 	RENDERER->setVertexBuffer(mVertices);
 	RENDERER->setShader(mShader);
-	RENDERER->setTextureAddressMode(Renderer::TextureAddress::Wrap);
+	RENDERER->setTextureAddressMode(skygfx::TextureAddress::Wrap);
 	RENDERER->clear();
 	
 	for (auto& face : mFaces)
@@ -346,7 +344,7 @@ void Application::onFrame()
 			continue;
 		}
 
-		RENDERER->setTexture(mTextures.at(face.tex_id));
+		RENDERER->setTexture(*mTextures.at(face.tex_id));
 		RENDERER->draw(face.count, face.start);
 	}
 
@@ -366,7 +364,7 @@ void Application::onFrame()
 
 	auto trace = mBSPFile.traceLine(pos, pos + (dir * 8192.0f));
 
-	Renderer::Vertex::PositionColor v1, v2, v3, v4, v5, v6, v7;
+	skygfx::Vertex::PositionColor v1, v2, v3, v4, v5, v6, v7;
 
 	v1.pos.x = trace.endpos.x;
 	v1.pos.y = trace.endpos.y;
@@ -379,13 +377,13 @@ void Application::onFrame()
 	v6.pos = { v1.pos.x,      v1.pos.y,      v1.pos.z + 10 };
 	v7.pos = { v1.pos.x,      v1.pos.y,      v1.pos.z - 10 };
 
-	v1.col = { Graphics::Color::Lime, 1.0f };
-	v2.col = v1.col;
-	v3.col = v1.col;
-	v4.col = v1.col;
-	v5.col = v1.col;
-	v6.col = v1.col;
-	v7.col = v1.col;
+	v1.color = { Graphics::Color::Lime, 1.0f };
+	v2.color = v1.color;
+	v3.color = v1.color;
+	v4.color = v1.color;
+	v5.color = v1.color;
+	v6.color = v1.color;
+	v7.color = v1.color;
 
 	auto vertices = {
 		v1, v2, 
@@ -398,13 +396,12 @@ void Application::onFrame()
 
 	GRAPHICS->begin();
 	GRAPHICS->pushRenderTarget(mSceneTarget);
-	GRAPHICS->pushViewport(mSceneTarget);
 	GRAPHICS->pushViewMatrix(mCamera->getViewMatrix());
 	GRAPHICS->pushProjectionMatrix(mCamera->getProjectionMatrix());
-	GRAPHICS->pushDepthMode(Renderer::DepthMode(Renderer::ComparisonFunc::Less));
+	GRAPHICS->pushDepthMode(skygfx::ComparisonFunc::Less);
 	GRAPHICS->pushModelMatrix(model);
-	GRAPHICS->draw(Renderer::Topology::LineList, vertices);
-	GRAPHICS->pop(6);
+	GRAPHICS->draw(skygfx::Topology::LineList, vertices);
+	GRAPHICS->pop(5);
 	GRAPHICS->end();
 
 	//getScene()->frame();
@@ -412,6 +409,6 @@ void Application::onFrame()
 
 void Application::onEvent(const Platform::System::ResizeEvent& e)
 {
-	mSceneTarget = std::make_shared<Renderer::RenderTarget>(e.width, e.height);
+	mSceneTarget = std::make_shared<skygfx::RenderTarget>(e.width, e.height);
 	mSceneSprite->setTexture(mSceneTarget);
 }

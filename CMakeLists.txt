@@ -28,12 +28,29 @@ file(GLOB ALL_SRC
 	${MAIN_SRC}
 )
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-add_definitions(-DNOMINMAX)
+if(WIN32)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+	add_definitions(-DNOMINMAX)
 
-add_executable(${PROJECT_NAME} 
-	${ALL_SRC}
-)
+	add_executable(${PROJECT_NAME} 
+		${ALL_SRC}
+	)
+elseif(APPLE)
+	set(CMAKE_MACOSX_BUNDLE YES)
+
+	if(BUILD_PLATFORM_MAC)
+		set(RESOURCES
+			assets
+		)
+
+		add_executable(${PROJECT_NAME}
+			${ALL_SRC}
+			${RESOURCES}
+		)
+
+		set_target_properties(${PROJECT_NAME} PROPERTIES RESOURCE ${RESOURCES})
+	endif()
+endif()
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
