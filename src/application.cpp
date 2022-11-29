@@ -226,6 +226,10 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 	mSceneSprite->setTexture(mSceneTarget);
 	mSceneSprite->setStretch(1.0f);
 	mBloomLayer->attach(mSceneSprite);
+	
+#if defined(PLATFORM_MAC)
+	PLATFORM->resize(1600, 1200);
+#endif
 }
 
 void Application::onFrame()
