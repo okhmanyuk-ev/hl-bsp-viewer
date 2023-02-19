@@ -1,6 +1,7 @@
 #pragma once
 
 #include <HL/bspfile.h>
+#include <HL/bsp_draw.h>
 #include <shared/all.h>
 
 class Application : public Shared::Application, 
@@ -26,17 +27,11 @@ private:
 	
 private:
 	BSPFile mBSPFile;
+	std::shared_ptr<HL::BspDraw> mBspDraw;
 	std::shared_ptr<Graphics::Camera3D> mCamera;
 	std::shared_ptr<Shared::FirstPersonCameraController> mCameraController;
 
-	using Vertex = skygfx::Vertex::PositionTextureNormal;
-
-	//std::shared_ptr<Renderer::Shaders::Light> mShader = std::make_shared<Renderer::Shaders::Light>(Vertex::Layout, std::set<Renderer::Shaders::Light::Flag>{ });
-	std::shared_ptr<Renderer::Shaders::Light> mShader = std::make_shared<Renderer::Shaders::Light>(Vertex::Layout);
-
-	std::vector<Vertex> mVertices;
-	std::vector<Face> mFaces;
-	std::map<TexId, std::shared_ptr<skygfx::Texture>> mTextures;
+	std::unordered_map<TexId, std::shared_ptr<skygfx::Texture>> mTextures;
 	
 	bool mLightAnimation = false;
 	glm::vec3 mLightPosition;
