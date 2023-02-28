@@ -108,12 +108,12 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 
 	lights.push_back(skygfx::utils::PointLight{
 		.position = { 151.977f, -326.671f, 1629.473f },
-		.constant_attenuation = 0.0f,
-		.linear_attenuation = 0.005f,
-		.quadratic_attenuation = 0.0f,
 		.ambient = { 1.0f, 1.0f, 1.0f },
 		.diffuse = { 0.25f, 1.0f, 0.25f },
-		.specular = { 0.25f, 0.25f, 1.0f }
+		.specular = { 0.25f, 0.25f, 1.0f },
+		.constant_attenuation = 0.0f,
+		.linear_attenuation = 0.005f,
+		.quadratic_attenuation = 0.0f
 	});
 
 	mBspDraw->setLights(lights);
