@@ -309,6 +309,9 @@ void Application::onFrame()
 
 void Application::onEvent(const Platform::System::ResizeEvent& e)
 {
+	if (e.width == 0 && e.height == 0)
+		return;
+
 	mSceneTarget = std::make_shared<skygfx::RenderTarget>(e.width, e.height);
 	mSceneSprite->setTexture(mSceneTarget);
 }
