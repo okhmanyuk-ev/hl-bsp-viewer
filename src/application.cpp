@@ -96,7 +96,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 
 	auto lights = mBspDraw->getLights();
 
-	lights.push_back(skygfx::ext::DirectionalLight{
+	lights.push_back(skygfx::ext::effects::DirectionalLight{
 		.direction = { 0.75f, 0.75f, 0.75f },
 		//.ambient = Graphics::Color::ToNormalized(23, 22, 22),
 		//.diffuse = Graphics::Color::ToNormalized(65, 65, 65),
@@ -106,7 +106,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 		.specular = Graphics::Color::ToNormalized(255, 255, 255),
 	});
 
-	lights.push_back(skygfx::ext::PointLight{
+	lights.push_back(skygfx::ext::effects::PointLight{
 		.position = { 151.977f, -326.671f, 1629.473f },
 		.ambient = { 1.0f, 1.0f, 1.0f },
 		.diffuse = { 0.25f, 1.0f, 0.25f },
@@ -169,8 +169,8 @@ void Application::onFrame()
 	auto position = mCamera->getPosition();
 	auto pitch = mCamera->getPitch();
 	auto yaw = mCamera->getYaw();
-	auto directionalLight = std::get<skygfx::ext::DirectionalLight>(mBspDraw->getLights().at(0));
-	auto pointLight = std::get<skygfx::ext::PointLight>(mBspDraw->getLights().at(1));
+	auto directionalLight = std::get<skygfx::ext::effects::DirectionalLight>(mBspDraw->getLights().at(0));
+	auto pointLight = std::get<skygfx::ext::effects::PointLight>(mBspDraw->getLights().at(1));
 
 	static bool show_settings = false;
 	
