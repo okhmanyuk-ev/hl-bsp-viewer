@@ -96,7 +96,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 
 	auto lights = mBspDraw->getLights();
 
-	lights.push_back(skygfx::ext::effects::DirectionalLight{
+	lights.push_back(skygfx::utils::effects::DirectionalLight{
 		.direction = { 0.75f, 0.75f, 0.75f },
 		//.ambient = Graphics::Color::ToNormalized(23, 22, 22),
 		//.diffuse = Graphics::Color::ToNormalized(65, 65, 65),
@@ -106,7 +106,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 		.specular = Graphics::Color::ToNormalized(255, 255, 255),
 	});
 
-	lights.push_back(skygfx::ext::effects::PointLight{
+	lights.push_back(skygfx::utils::effects::PointLight{
 		.position = { 151.977f, -326.671f, 1629.473f },
 		.ambient = { 1.0f, 1.0f, 1.0f },
 		.diffuse = { 0.25f, 1.0f, 0.25f },
@@ -146,10 +146,6 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 
 	mBloomLayer = std::make_shared<Scene::BloomLayer>();
 	mBloomLayer->setStretch(1.0f);
-	mBloomLayer->setGlowIntensity(4.0f);
-	mBloomLayer->setBlurPasses(8);
-	mBloomLayer->setBrightThreshold(0.975f);
-	mBloomLayer->setDownscaleFactor(8.0f);
 	getScene()->getRoot()->attach(mBloomLayer);
 
 	mSceneSprite = std::make_shared<Scene::Sprite>();
@@ -169,8 +165,8 @@ void Application::onFrame()
 	auto position = mCamera->getPosition();
 	auto pitch = mCamera->getPitch();
 	auto yaw = mCamera->getYaw();
-	auto directionalLight = std::get<skygfx::ext::effects::DirectionalLight>(mBspDraw->getLights().at(0));
-	auto pointLight = std::get<skygfx::ext::effects::PointLight>(mBspDraw->getLights().at(1));
+	auto directionalLight = std::get<skygfx::utils::effects::DirectionalLight>(mBspDraw->getLights().at(0));
+	auto pointLight = std::get<skygfx::utils::effects::PointLight>(mBspDraw->getLights().at(1));
 
 	static bool show_settings = false;
 	
@@ -210,21 +206,15 @@ void Application::onFrame()
 
 		auto bloom_enabled = mBloomLayer->isPostprocessEnabled();
 		auto threshold = mBloomLayer->getBrightThreshold();
-		auto glow = mBloomLayer->getGlowIntensity();
-		auto blur_passes = mBloomLayer->getBlurPasses();
-		auto downscale = mBloomLayer->getDownscaleFactor();
-
+		auto glow = mBloomLayer->getIntensity();
+		
 		ImGui::Checkbox("Bloom Enabled", &bloom_enabled);
 		ImGui::SliderFloat("Bright Threshold", &threshold, 0.0f, 2.0f);
 		ImGui::SliderFloat("Glow Intensity", &glow, 0.0f, 8.0f);
-		ImGui::SliderInt("Blur Passes", &blur_passes, 1, 8);
-		ImGui::SliderFloat("Downscale", &downscale, 1.0f, 8.0f);
 
 		mBloomLayer->setPostprocessEnabled(bloom_enabled);
 		mBloomLayer->setBrightThreshold(threshold);
-		mBloomLayer->setGlowIntensity(glow);
-		mBloomLayer->setBlurPasses(blur_passes);
-		mBloomLayer->setDownscaleFactor(downscale);
+		mBloomLayer->setIntensity(glow);
 	}
 
 	ImGui::Checkbox("Settings", &show_settings);
