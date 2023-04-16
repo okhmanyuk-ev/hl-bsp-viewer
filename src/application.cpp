@@ -84,7 +84,8 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 					}
 				}
 
-				mTextures[tex_id] = std::make_shared<skygfx::Texture>(miptex.width, miptex.height, 4, pixels.data(), true);
+				mTextures[tex_id] = std::make_shared<skygfx::Texture>(miptex.width, miptex.height,
+					skygfx::Format::Byte4, pixels.data(), true);
 			}
 		}
 	}
