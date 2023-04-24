@@ -113,7 +113,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 		.diffuse = { 0.25f, 1.0f, 0.25f },
 		.specular = { 0.25f, 0.25f, 1.0f },
 		.constant_attenuation = 0.0f,
-		.linear_attenuation = 0.005f,
+		.linear_attenuation = 0.012f,
 		.quadratic_attenuation = 0.0f
 	});
 
@@ -147,6 +147,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 
 	mBloomLayer = std::make_shared<Scene::BloomLayer>();
 	mBloomLayer->setStretch(1.0f);
+	mBloomLayer->setBrightThreshold(2.0f);
 	getScene()->getRoot()->attach(mBloomLayer);
 
 	mSceneSprite = std::make_shared<Scene::Sprite>();
@@ -166,6 +167,7 @@ void Application::onFrame()
 	auto position = mCamera->getPosition();
 	auto pitch = mCamera->getPitch();
 	auto yaw = mCamera->getYaw();
+	auto fov = mCamera->getFieldOfView();
 	auto directionalLight = std::get<skygfx::utils::effects::DirectionalLight>(mBspDraw->getLights().at(0));
 	auto pointLight = std::get<skygfx::utils::effects::PointLight>(mBspDraw->getLights().at(1));
 
@@ -178,6 +180,7 @@ void Application::onFrame()
 	{
 		ImGui::SliderAngle("Pitch##1", &pitch, -89.0f, 89.0f);
 		ImGui::SliderAngle("Yaw##1", &yaw, -180.0f, 180.0f);
+		ImGui::SliderFloat("Fov##1", &fov, 1.0f, 180.0f);
 		ImGui::DragFloat3("Position##1", (float*)&position);
 
 		ImGui::Separator();
@@ -210,7 +213,7 @@ void Application::onFrame()
 		auto glow = mBloomLayer->getIntensity();
 		
 		ImGui::Checkbox("Bloom Enabled", &bloom_enabled);
-		ImGui::SliderFloat("Bright Threshold", &threshold, 0.0f, 2.0f);
+		ImGui::SliderFloat("Bright Threshold", &threshold, 0.0f, 4.0f);
 		ImGui::SliderFloat("Glow Intensity", &glow, 0.0f, 8.0f);
 
 		mBloomLayer->setPostprocessEnabled(bloom_enabled);
@@ -232,12 +235,13 @@ void Application::onFrame()
 
 	mCamera->setPitch(pitch);
 	mCamera->setYaw(yaw);
+	mCamera->setFieldOfView(fov);
 	mCamera->setPosition(position);
 
 	auto model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 0, 0));
 	auto world_up = mCamera->getWorldUp();
 
-	mBspDraw->draw(mSceneTarget, position, yaw, pitch, model, world_up, mTextures);
+	mBspDraw->draw(mSceneTarget, position, yaw, pitch, model, fov, world_up, mTextures);
 
 	//
 
