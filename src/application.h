@@ -30,8 +30,6 @@ private:
 	std::shared_ptr<HL::BspDraw> mBspDraw;
 	std::shared_ptr<Graphics::Camera3D> mCamera;
 	std::shared_ptr<Shared::FirstPersonCameraController> mCameraController;
-
-	std::unordered_map<TexId, std::shared_ptr<skygfx::Texture>> mTextures;
 	
 	bool mLightAnimation = false;
 	glm::vec3 mLightPosition;

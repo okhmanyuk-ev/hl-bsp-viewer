@@ -18,11 +18,10 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 	//mBSPFile.loadFromFile("de_dust2.bsp", true);
 	mBSPFile.loadFromFile("cs_assault.bsp", true);
 
-	mBspDraw = std::make_shared<HL::BspDraw>(mBSPFile);
-
 	auto& textures = mBSPFile.getTextures();
 	auto& wads = mBSPFile.getWADFiles();
-	
+	std::unordered_map<TexId, std::shared_ptr<skygfx::Texture>> textures_map;
+
 	for (int tex_id = 0; tex_id < textures.size(); tex_id++)
 	{
 		auto& texture = textures[tex_id];
@@ -84,11 +83,15 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 					}
 				}
 
-				mTextures[tex_id] = std::make_shared<skygfx::Texture>(miptex.width, miptex.height,
+				textures_map[tex_id] = std::make_shared<skygfx::Texture>(miptex.width, miptex.height,
 					skygfx::Format::Byte4, pixels.data(), true);
 			}
 		}
 	}
+
+	auto model_matrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 0, 0));
+
+	mBspDraw = std::make_shared<HL::BspDraw>(mBSPFile, textures_map, model_matrix);
 
 	GRAPHICS->setBatching(false); // bug in batching, 3D objects cannot be rendered
 
@@ -241,7 +244,7 @@ void Application::onFrame()
 	auto model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 0, 0));
 	auto world_up = mCamera->getWorldUp();
 
-	mBspDraw->draw(mSceneTarget, position, yaw, pitch, model, fov, world_up, mTextures);
+	mBspDraw->draw(mSceneTarget, position, yaw, pitch, fov, world_up);
 
 	//
 
