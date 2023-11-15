@@ -100,7 +100,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 
 	auto lights = mBspDraw->getLights();
 
-	lights.push_back(skygfx::utils::effects::DirectionalLight{
+	lights.push_back(skygfx::utils::DirectionalLight{
 		.direction = { 0.75f, 0.75f, 0.75f },
 		//.ambient = Graphics::Color::ToNormalized(23, 22, 22),
 		//.diffuse = Graphics::Color::ToNormalized(65, 65, 65),
@@ -110,7 +110,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 		.specular = Graphics::Color::ToNormalized(255, 255, 255),
 	});
 
-	lights.push_back(skygfx::utils::effects::PointLight{
+	lights.push_back(skygfx::utils::PointLight{
 		.position = { 151.977f, -326.671f, 1629.473f },
 		.ambient = { 1.0f, 1.0f, 1.0f },
 		.diffuse = { 0.25f, 1.0f, 0.25f },
@@ -171,8 +171,8 @@ void Application::onFrame()
 	auto pitch = mCamera->getPitch();
 	auto yaw = mCamera->getYaw();
 	auto fov = mCamera->getFieldOfView();
-	auto directionalLight = std::get<skygfx::utils::effects::DirectionalLight>(mBspDraw->getLights().at(0));
-	auto pointLight = std::get<skygfx::utils::effects::PointLight>(mBspDraw->getLights().at(1));
+	auto directionalLight = std::get<skygfx::utils::DirectionalLight>(mBspDraw->getLights().at(0));
+	auto pointLight = std::get<skygfx::utils::PointLight>(mBspDraw->getLights().at(1));
 
 	static bool show_settings = false;
 	
@@ -262,7 +262,7 @@ void Application::onFrame()
 
 	auto trace = mBSPFile.traceLine(pos, pos + (dir * 8192.0f));
 
-	skygfx::Vertex::PositionColor v1, v2, v3, v4, v5, v6, v7;
+	skygfx::utils::Mesh::Vertex v1, v2, v3, v4, v5, v6, v7;
 
 	v1.pos.x = trace.endpos.x;
 	v1.pos.y = trace.endpos.y;
@@ -283,7 +283,7 @@ void Application::onFrame()
 	v6.color = v1.color;
 	v7.color = v1.color;
 
-	auto vertices = {
+	skygfx::utils::Mesh::Vertices vertices = {
 		v1, v2, 
 		v1, v3, 
 		v1, v4, 
@@ -298,7 +298,7 @@ void Application::onFrame()
 	GRAPHICS->pushProjectionMatrix(mCamera->getProjectionMatrix());
 	GRAPHICS->pushDepthMode(skygfx::ComparisonFunc::Less);
 	GRAPHICS->pushModelMatrix(model);
-	GRAPHICS->draw(skygfx::Topology::LineList, vertices);
+	GRAPHICS->draw(nullptr, nullptr, skygfx::Topology::LineList, vertices, {});
 	GRAPHICS->pop(5);
 	GRAPHICS->end();
 
