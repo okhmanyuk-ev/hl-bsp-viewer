@@ -59,7 +59,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 
 				std::vector<Pixel> pixels;
 				pixels.resize(miptex.width * miptex.height);
-				
+
 				int j = 0;
 
 				for (auto& pixel : pixels)
@@ -84,7 +84,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 				}
 
 				textures_map[tex_id] = std::make_shared<skygfx::Texture>(miptex.width, miptex.height,
-					skygfx::Format::Byte4, pixels.data(), true);
+					skygfx::PixelFormat::RGBA8UNorm, pixels.data(), true);
 			}
 		}
 	}
@@ -144,7 +144,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 		{
 			seq->add(Actions::Collection::Interpolate(waypoint, 10.0f, mLightPosition));
 		}
-		
+
 		return seq;
 	}));
 
@@ -157,7 +157,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 	mSceneSprite->setTexture(mSceneTarget);
 	mSceneSprite->setStretch(1.0f);
 	mBloomLayer->attach(mSceneSprite);
-	
+
 #if defined(PLATFORM_MAC)
 	PLATFORM->resize(1600, 1200);
 #endif
@@ -166,7 +166,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 void Application::onFrame()
 {
 	mCamera->onFrame(); // camera matrices are outdated for 1 frame
-	
+
 	auto position = mCamera->getPosition();
 	auto pitch = mCamera->getPitch();
 	auto yaw = mCamera->getYaw();
@@ -175,7 +175,7 @@ void Application::onFrame()
 	auto pointLight = std::get<skygfx::utils::PointLight>(mBspDraw->getLights().at(1));
 
 	static bool show_settings = false;
-	
+
 	ImGui::Begin("Settings", nullptr, ImGui::User::ImGuiWindowFlags_Overlay & ~ImGuiWindowFlags_NoInputs);
 	ImGui::SetWindowPos(ImGui::User::BottomLeftCorner());
 
@@ -214,7 +214,7 @@ void Application::onFrame()
 		auto bloom_enabled = mBloomLayer->isPostprocessEnabled();
 		auto threshold = mBloomLayer->getBrightThreshold();
 		auto glow = mBloomLayer->getIntensity();
-		
+
 		ImGui::Checkbox("Bloom Enabled", &bloom_enabled);
 		ImGui::SliderFloat("Bright Threshold", &threshold, 0.0f, 4.0f);
 		ImGui::SliderFloat("Glow Intensity", &glow, 0.0f, 8.0f);
@@ -284,11 +284,11 @@ void Application::onFrame()
 	v7.color = v1.color;
 
 	skygfx::utils::Mesh::Vertices vertices = {
-		v1, v2, 
-		v1, v3, 
-		v1, v4, 
-		v1, v5, 
-		v1, v6, 
+		v1, v2,
+		v1, v3,
+		v1, v4,
+		v1, v5,
+		v1, v6,
 		v1, v7
 	};
 
