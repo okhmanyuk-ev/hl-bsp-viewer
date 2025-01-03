@@ -24,13 +24,13 @@ public:
 private:
 	void onFrame() override;
 	void onEvent(const Platform::System::ResizeEvent& e) override;
-	
+
 private:
 	BSPFile mBSPFile;
 	std::shared_ptr<HL::BspDraw> mBspDraw;
-	std::shared_ptr<Graphics::Camera3D> mCamera;
+	std::shared_ptr<skygfx::utils::PerspectiveCamera> mCamera;
 	std::shared_ptr<Shared::FirstPersonCameraController> mCameraController;
-	
+
 	bool mLightAnimation = false;
 	glm::vec3 mLightPosition;
 

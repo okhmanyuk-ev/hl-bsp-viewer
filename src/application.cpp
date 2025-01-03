@@ -4,11 +4,12 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 {
 	PLATFORM->setTitle(PRODUCT_NAME);
 
-	mCamera = std::make_shared<Graphics::Camera3D>();
+	mCamera = std::make_shared<skygfx::utils::PerspectiveCamera>();
 	mCameraController = std::make_shared<Shared::FirstPersonCameraController>(mCamera);
 
-	mCamera->setYaw(glm::radians(90.0f));
-	mCamera->setPosition({ 0.0f, 0.0f, -300.0f });
+	mCamera->yaw = glm::radians(90.0f);
+	mCamera->position = { 0.0f, 0.0f, -300.0f };
+	mCamera->world_up = { 0.0f, -1.0f, 0.0f };
 
 	mCameraController->setSensivity(1.0f);
 	mCameraController->setSpeed(5.0f);
@@ -96,7 +97,7 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 	GRAPHICS->setBatching(false); // bug in batching, 3D objects cannot be rendered
 
 	//mCamera->setPosition({ 359.867f, -368.278f, 1721.268f });
-	mCamera->setPosition({ 1441.438f, -61.265f, 802.192f });
+	mCamera->position = { 1441.438f, -61.265f, 802.192f };
 
 	auto lights = mBspDraw->getLights();
 
@@ -124,8 +125,8 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 
 	//mCamera->setPitch(glm::radians(12.0f));
 	//mCamera->setYaw(glm::radians(-138.0f));
-	mCamera->setPitch(glm::radians(-13.0f));
-	mCamera->setYaw(glm::radians(155.0f));
+	mCamera->pitch = glm::radians(-13.0f);
+	mCamera->yaw = glm::radians(155.0f);
 
 	// light animation
 
@@ -165,12 +166,6 @@ Application::Application() : Shared::Application("hl_bsp_viewer", { Flag::Scene 
 
 void Application::onFrame()
 {
-	mCamera->onFrame(); // camera matrices are outdated for 1 frame
-
-	auto position = mCamera->getPosition();
-	auto pitch = mCamera->getPitch();
-	auto yaw = mCamera->getYaw();
-	auto fov = mCamera->getFieldOfView();
 	auto directionalLight = std::get<skygfx::utils::DirectionalLight>(mBspDraw->getLights().at(0));
 	auto pointLight = std::get<skygfx::utils::PointLight>(mBspDraw->getLights().at(1));
 
@@ -181,10 +176,10 @@ void Application::onFrame()
 
 	if (show_settings)
 	{
-		ImGui::SliderAngle("Pitch##1", &pitch, -89.0f, 89.0f);
-		ImGui::SliderAngle("Yaw##1", &yaw, -180.0f, 180.0f);
-		ImGui::SliderFloat("Fov##1", &fov, 1.0f, 180.0f);
-		ImGui::DragFloat3("Position##1", (float*)&position);
+		ImGui::SliderAngle("Pitch##1", &mCamera->pitch, -89.0f, 89.0f);
+		ImGui::SliderAngle("Yaw##1", &mCamera->yaw, -180.0f, 180.0f);
+		ImGui::SliderFloat("Fov##1", &mCamera->fov, 1.0f, 180.0f);
+		ImGui::DragFloat3("Position##1", (float*)&mCamera->position);
 
 		ImGui::Separator();
 		ImGui::Text("Directional Light");
@@ -198,7 +193,7 @@ void Application::onFrame()
 		ImGui::DragFloat3("Position##3", (float*)&pointLight.position);
 		ImGui::SameLine();
 		if (ImGui::Button("Here"))
-			pointLight.position = position;
+			pointLight.position = mCamera->position;
 		ImGui::DragFloat("Constant Attenuation##3", &pointLight.constant_attenuation, 0.01f);
 		ImGui::DragFloat("Linear Attenuation##3", &pointLight.linear_attenuation, 0.001f);
 		ImGui::DragFloat("Quadratic Attenuation##3", &pointLight.quadratic_attenuation, 0.0001f);
@@ -236,28 +231,22 @@ void Application::onFrame()
 	lights[1] = pointLight;
 	mBspDraw->setLights(lights);
 
-	mCamera->setPitch(pitch);
-	mCamera->setYaw(yaw);
-	mCamera->setFieldOfView(fov);
-	mCamera->setPosition(position);
-
-	auto model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 0, 0));
-	auto world_up = mCamera->getWorldUp();
-
-	mBspDraw->draw(mSceneTarget, position, yaw, pitch, fov, world_up);
+	mBspDraw->draw(mSceneTarget, mCamera->position, mCamera->yaw, mCamera->pitch, mCamera->fov, mCamera->world_up);
 
 	//
 
 	glm::vec3 pos = {
-		mCamera->getPosition().x,
-		mCamera->getPosition().z,
-		-mCamera->getPosition().y,
+		mCamera->position.x,
+		mCamera->position.z,
+		-mCamera->position.y,
 	};
 
+	auto vectors = skygfx::utils::MakePerspectiveCameraVectors(*mCamera);
+
 	glm::vec3 dir = {
-		mCamera->getFront().x,
-		mCamera->getFront().z,
-		-mCamera->getFront().y,
+		vectors.front.x,
+		vectors.front.z,
+		-vectors.front.y,
 	};
 
 	auto trace = mBSPFile.traceLine(pos, pos + (dir * 8192.0f));
@@ -292,17 +281,18 @@ void Application::onFrame()
 		v1, v7
 	};
 
+	auto matrices = skygfx::utils::MakeCameraMatrices(*mCamera);
+	auto model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 0, 0));
+
 	GRAPHICS->begin();
 	GRAPHICS->pushRenderTarget(mSceneTarget);
-	GRAPHICS->pushViewMatrix(mCamera->getViewMatrix());
-	GRAPHICS->pushProjectionMatrix(mCamera->getProjectionMatrix());
-	GRAPHICS->pushDepthMode(skygfx::ComparisonFunc::Less);
+	GRAPHICS->pushProjectionMatrix(matrices.projection);
+	GRAPHICS->pushViewMatrix(matrices.view);
 	GRAPHICS->pushModelMatrix(model);
+	GRAPHICS->pushDepthMode(skygfx::ComparisonFunc::Less);
 	GRAPHICS->draw(nullptr, nullptr, skygfx::Topology::LineList, vertices, {});
 	GRAPHICS->pop(5);
 	GRAPHICS->end();
-
-	//getScene()->frame();
 }
 
 void Application::onEvent(const Platform::System::ResizeEvent& e)
